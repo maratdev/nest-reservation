@@ -3,22 +3,22 @@ import { INestApplication } from '@nestjs/common';
 import { AppModule } from '../src/app.module';
 import * as request from 'supertest';
 import { ReserveDto } from '../src/reserve/dto/reserve.dto';
-import { Types } from 'mongoose';
+import { disconnect, Types } from 'mongoose';
 import { roomTestDto } from './rooms.e2e-spec';
 import { GetIdReserveDto } from '../src/reserve/dto/reserve-id.dto';
 
 describe('ReserveController (e2e)', () => {
   let app: INestApplication;
-  let room_id: Types.ObjectId;
-  let reserve_id: string;
+  let roomId: Types.ObjectId;
+  let reserveId: string;
   const errorId = '65f369b4bbf22dc63233144dd';
-  const randomId = new Types.ObjectId().toHexString();
+  const ObjectId = '6608318f3380f1e9db120dc9';
   const reserveTestDto: ReserveDto = {
     checkInDate: Math.floor(Math.random() * 31) + 1,
-    room_id: room_id,
+    room_id: roomId,
   };
   const patchDto: GetIdReserveDto = {
-    id: new Types.ObjectId(reserve_id),
+    id: new Types.ObjectId(reserveId),
     ...reserveTestDto,
     checkInDate: Math.floor(Math.random() * 5) + 1, // допустимые дни
   };
@@ -42,9 +42,9 @@ describe('ReserveController (e2e)', () => {
         })
         .expect(201)
         .then(({ body }: request.Response) => {
-          room_id = body.newRoom?._id;
-          reserveTestDto.room_id = room_id;
-          expect(room_id).toBeDefined();
+          roomId = body.newRoom?._id;
+          reserveTestDto.room_id = roomId;
+          expect(roomId).toBeDefined();
           return;
         });
     });
@@ -55,25 +55,25 @@ describe('ReserveController (e2e)', () => {
         .send(reserveTestDto)
         .expect(201)
         .then(({ body }: request.Response) => {
-          reserve_id = body.newReserve._id;
-          expect(reserve_id).toBeDefined();
+          reserveId = body.newReserve._id;
+          expect(reserveId).toBeDefined();
           return;
         });
     });
     describe('Вывод информации о резерве', () => {
       it('/reserve/:id (GET) - success 200', async () => {
         return request(app.getHttpServer())
-          .get('/reserve/' + reserve_id)
+          .get('/reserve/' + reserveId)
           .send(reserveTestDto)
           .expect(200)
           .then(({ body }: request.Response) => {
-            expect(reserve_id === body._id).toBe(true);
+            expect(reserveId === body._id).toBe(true);
             return;
           });
       });
       it('/reserve/:id (GET) - fail 404', () => {
         return request(app.getHttpServer())
-          .get(`/reserve/${randomId}`)
+          .get(`/reserve/${ObjectId}`)
           .send(roomTestDto)
           .expect(404);
       });
@@ -81,27 +81,27 @@ describe('ReserveController (e2e)', () => {
     describe('Обновление дынных резерва по id', () => {
       it('/reserve/:id (PATCH) - success 200', async () => {
         await request(app.getHttpServer())
-          .patch('/reserve/' + reserve_id)
-          .send({ ...patchDto, room_id })
+          .patch('/reserve/' + reserveId)
+          .send({ ...patchDto, room_id: roomId })
           .expect(200);
       });
 
       it('/reserve/:id (PATCH) - fail 404', async () => {
         await request(app.getHttpServer())
-          .patch('/reserve/' + randomId)
-          .send({ ...patchDto, room_id })
+          .patch('/reserve/' + ObjectId)
+          .send({ ...patchDto, room_id: roomId })
           .expect(404);
       });
     });
     describe('Удаление резерва по id', () => {
       it('/reserve/:id (DELETE) - success 200', () => {
         return request(app.getHttpServer())
-          .delete('/reserve/' + reserve_id)
+          .delete('/reserve/' + reserveId)
           .expect(200);
       });
       it('/reserve/:id (DELETE) - fail 404', () => {
         return request(app.getHttpServer())
-          .delete('/reserve/' + randomId)
+          .delete('/reserve/' + ObjectId)
           .expect(404);
       });
     });
@@ -137,7 +137,7 @@ describe('ReserveController (e2e)', () => {
       });
       it('reserve/:id (PATCH) 400 validation error (checkInDate)', () => {
         return request(app.getHttpServer())
-          .patch('/reserve/' + reserve_id)
+          .patch('/reserve/' + reserveId)
           .send({
             ...patchDto,
             checkInDate: 0,
@@ -154,4 +154,5 @@ describe('ReserveController (e2e)', () => {
       });
     });
   });
+  afterAll(() => disconnect());
 });

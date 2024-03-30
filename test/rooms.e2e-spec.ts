@@ -17,7 +17,7 @@ describe('RoomsController (e2e)', () => {
   let app: INestApplication;
   let roomId: string;
 
-  const randomId = new Types.ObjectId().toHexString();
+  const ObjectId = '66083265ab478b178d60ef79';
   const errorId = '65f369b4bbf22dc63233144dd';
 
   beforeEach(async () => {
@@ -56,7 +56,7 @@ describe('RoomsController (e2e)', () => {
 
       it('/rooms/:id (GET) - fail 404', () => {
         return request(app.getHttpServer())
-          .get(`/room/${randomId}`)
+          .get(`/room/${ObjectId}`)
           .send(roomTestDto)
           .expect(404);
       });
@@ -83,7 +83,7 @@ describe('RoomsController (e2e)', () => {
         };
 
         await request(app.getHttpServer())
-          .patch('/rooms/' + randomId)
+          .patch('/rooms/' + ObjectId)
           .send(patchDto)
           .expect(404);
       });
@@ -98,7 +98,7 @@ describe('RoomsController (e2e)', () => {
 
       it('/rooms/:id (DELETE) - fail 404', () => {
         return request(app.getHttpServer())
-          .delete('/rooms/' + randomId)
+          .delete('/rooms/' + ObjectId)
           .expect(404);
       });
     });
