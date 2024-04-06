@@ -4,6 +4,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { MongooseConfigService } from './config/mongodb/mongo.config';
 import { ReserveModule } from './reserve/reserve.module';
 import { ConfigAppModule } from './config/core/config-app.module';
+import { AuthModule } from './auth/auth.module';
+import { UserController } from './user/user.controller';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -13,6 +16,9 @@ import { ConfigAppModule } from './config/core/config-app.module';
     ConfigAppModule,
     RoomsModule,
     ReserveModule,
+    AuthModule,
+    UserModule,
   ],
+  controllers: [UserController],
 })
 export class AppModule {}
