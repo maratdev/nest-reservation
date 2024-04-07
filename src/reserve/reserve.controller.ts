@@ -12,6 +12,7 @@ import {
   Patch,
   Post,
   Res,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -21,7 +22,9 @@ import { GetIdReserveDto } from './dto/reserve-id.dto';
 import { RESERVE } from './constants';
 import { ROOM } from '../rooms/constants';
 import { STATUS } from '../config/constants/default';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 
+@UseGuards(JwtAuthGuard)
 @UsePipes(new ValidationPipe())
 @Controller('reserve')
 export class ReserveController {

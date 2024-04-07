@@ -3,6 +3,7 @@ import { IsOptional, IsString, MaxLength } from 'class-validator';
 export enum RoleTypes {
   admin = 1,
   user,
+  guest,
   moderator,
 }
 

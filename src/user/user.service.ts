@@ -14,6 +14,7 @@ export class UserService {
     @InjectModel(RoleModel.name) private readonly roleModel: Model<RoleModel>,
   ) {}
 
+  //? add try catch response status code
   async createUser(dto: CreateUserDTO) {
     const salt = await genSalt(10);
     const newUser = new this.userModel({
@@ -25,8 +26,10 @@ export class UserService {
   }
 
   async createUserRole(dto: RoleDto) {
-    const newRole = new this.roleModel(dto);
+    return new this.roleModel(dto).save();
+  }
 
-    return newRole.save();
+  async getByEmail(email: string) {
+    return this.userModel.findOne({ email }).select('-password');
   }
 }

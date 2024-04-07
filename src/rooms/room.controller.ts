@@ -12,6 +12,7 @@ import {
   Patch,
   Post,
   Res,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -21,13 +22,20 @@ import { RoomIdDto } from './dto/roomId.dto';
 import { STATUS } from '../config/constants/default';
 import { ROOM } from './constants';
 import { MongoError } from 'mongodb';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { Roles } from '../user/decorators/roles.decorator';
+import { RoleTypes } from '../user/dto/role.dto';
+import { RolesGuard } from '../user/guards/roles.guard';
 
-@UsePipes(new ValidationPipe())
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('rooms')
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}
 
   // -----------------Вывод всех комнат
+
+  @UsePipes(new ValidationPipe())
+  @Roles(RoleTypes.admin)
   @Get('all')
   async getAllRoom(@Res() response) {
     try {

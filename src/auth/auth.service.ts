@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { compare } from 'bcryptjs';
 import { AUTH } from './constants/auth.constants';
+import { AuthDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -20,16 +21,17 @@ export class AuthService {
   async validateUser(
     email: string,
     password: string,
-  ): Promise<Pick<UserModel, 'email'>> {
+  ): Promise<Pick<UserModel, 'email' | 'role'>> {
     const user = await this.findUser(email);
     if (!user) throw new UnauthorizedException(AUTH.USER_NOT_FOUND_ERROR);
     const isMatch = await compare(password, user.password);
     if (!isMatch) throw new UnauthorizedException(AUTH.WRONG_PASSWORD_ERROR);
-    return { email: user.email };
+    return { email: user.email, role: user.role };
   }
 
-  async login(email: string) {
-    const payload = { email };
+  async login(dto: AuthDto) {
+    const user = await this.validateUser(dto.email, dto.password);
+    const payload = { email: user.email, role: user.role };
     return {
       access_token: await this.jwtService.signAsync(payload),
     };
