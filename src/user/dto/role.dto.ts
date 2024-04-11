@@ -1,4 +1,11 @@
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MaxLength,
+  NotContains,
+} from 'class-validator';
 
 export enum RoleTypes {
   admin = 1,
@@ -10,7 +17,13 @@ export enum RoleTypes {
 export type TUser = (typeof RoleTypes)[keyof typeof RoleTypes];
 
 export class RoleDto {
+  @IsOptional()
+  @IsNumber()
+  id: number;
+
   @MaxLength(50)
+  @IsNotEmpty()
+  @NotContains(' ')
   @IsString()
   name: string;
 

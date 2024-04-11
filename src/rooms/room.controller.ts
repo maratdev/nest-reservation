@@ -27,15 +27,15 @@ import { Roles } from '../user/decorators/roles.decorator';
 import { RoleTypes } from '../user/dto/role.dto';
 import { RolesGuard } from '../user/guards/roles.guard';
 
+@Roles(RoleTypes.admin)
 @UseGuards(JwtAuthGuard, RolesGuard)
+@UsePipes(new ValidationPipe())
 @Controller('rooms')
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}
 
   // -----------------Вывод всех комнат
-
   @UsePipes(new ValidationPipe())
-  @Roles(RoleTypes.admin)
   @Get('all')
   async getAllRoom(@Res() response) {
     try {

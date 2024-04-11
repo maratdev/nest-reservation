@@ -14,7 +14,7 @@ const valuesKeys = EnumValues.getValues(RoleTypes);
 const valuesNames = EnumValues.getNamesAndValues(RoleTypes);
 const transformed = valuesNames.map((num) => ` ${num.value}:${num.name}`); // '1:admin' '2:user' '3:moderator'
 
-export class CreateUserDTO {
+export class UserDTO {
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)
@@ -39,5 +39,5 @@ export class CreateUserDTO {
       return `Выберите роль пользователя в системе ${transformed}`;
     },
   })
-  role: TUser = RoleTypes.user;
+  role: TUser;
 }

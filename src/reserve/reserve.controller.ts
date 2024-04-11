@@ -98,7 +98,6 @@ export class ReserveController {
         }
 
         if (err.getStatus() === HttpStatus.CONFLICT) {
-          console.log(err.getResponse());
           throw new ConflictException(
             `${RESERVE.UPDATE_CONFLICT} ${String(err.getResponse())}`,
           );

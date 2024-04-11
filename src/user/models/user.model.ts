@@ -10,11 +10,14 @@ import { RoleModel } from './role.model';
 export class UserModel extends Document {
   @Prop({
     required: true,
+    lowercase: true,
+    maxlength: 50,
   })
   username: string;
 
   @Prop({
     required: true,
+    lowercase: true,
   })
   email: string;
 

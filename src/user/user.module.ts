@@ -21,12 +21,11 @@ import {
       {
         name: RoleModel.name,
         useFactory: () => {
-          const schema = RoleSchema;
-          schema.plugin(AutoIncrementID, {
+          RoleSchema.plugin(AutoIncrementID, {
             field: 'id',
             startAt: 1,
           } satisfies AutoIncrementIDOptions);
-          return schema;
+          return RoleSchema;
         },
         inject: [getConnectionToken()],
       },

@@ -1,6 +1,6 @@
 import { IsMongoId, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { SafeMongoIdTransform } from '../../config/filter/mongo-exception.filter';
+import { SafeMongoIdTransform } from '../../config/mongodb/mongoid-transform';
 import { Types } from 'mongoose';
 import { ReserveDto } from './reserve.dto';
 import { PartialType } from '@nestjs/swagger';
