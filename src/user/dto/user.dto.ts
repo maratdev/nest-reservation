@@ -29,7 +29,8 @@ export class UserDTO {
   password: string;
 
   @IsPhoneNumber('RU', {
-    message: 'Неверный формат номера телефона. Правильный +71234567890',
+    message:
+      'Неверный формат номера телефона. Правильный +79********* или 89*********',
   })
   phone: string;
 

@@ -9,7 +9,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UserDTO } from './dto/user.dto';
 import { genSalt, hash } from 'bcryptjs';
-import { RoleDto } from './dto/role.dto';
+import { RoleDto, UpdateRoleDto } from './dto/role.dto';
 import { RoleModel } from './models/role.model';
 import { UserEmailDto } from './dto/email-user.dto';
 import { IdMongoDto } from './dto/id-mongo.dto';
@@ -35,14 +35,7 @@ export class UserService {
     return newUser.save();
   }
 
-  async createUserRole(dto: RoleDto): Promise<RoleModel> {
-    await this.checkDuplicateRole(dto.name);
-    return new this.roleModel(dto).save();
-  }
-
-  async getDataUser({
-    email,
-  }: UserEmailDto): Promise<UserModel | NotFoundException> {
+  async getDataUser({ email }: UserEmailDto): Promise<UserModel> {
     const checkReserve = await this.userModel
       .findOne({ email })
       .select('-password');
@@ -71,18 +64,52 @@ export class UserService {
     return this.userModel.findByIdAndDelete(userId.id);
   }
 
-  //--------------------- Вспомогательные методы --------------------/
-  async checkDuplicateUser(email: string): Promise<boolean> {
-    const user = await this.userModel.findOne({ email });
-    if (user) {
-      throw new ConflictException(USER.DUPLICATE);
-    }
-    return !!user;
+  async deleteUserFromEmail(email: string) {
+    return this.userModel.deleteOne({ email });
   }
 
-  async checkDuplicateRole(name: string): Promise<boolean> {
-    const role = await this.roleModel.findOne({ name });
+  //--------------------- Методы для ролей--------------------/
+  async createUserRole(dto: RoleDto): Promise<RoleModel> {
+    await this.checkDuplicateRole(dto.name);
+    return new this.roleModel(dto).save();
+  }
+
+  async updateUserRole(
+    roleId: IdMongoDto,
+    dto: UpdateRoleDto,
+  ): Promise<RoleModel> {
+    const role = await this.roleModel.findById({
+      _id: roleId.id,
+    });
+    if (!role) throw new NotFoundException(ROLE.NOT_FOUND);
+    await this.checkDuplicateRole(dto.name);
+    return this.roleModel
+      .findByIdAndUpdate(roleId.id, {
+        ...dto,
+      })
+      .exec();
+  }
+
+  async deleteUserRole(roleId: IdMongoDto): Promise<void> {
+    const role = await this.roleModel.findById({
+      _id: roleId.id,
+    });
+    if (!role) throw new NotFoundException(ROLE.NOT_FOUND);
+    return this.roleModel.findByIdAndDelete(roleId.id);
+  }
+
+  //--------------------- Вспомогательные методы --------------------/
+  private async checkDuplicateUser(email: string): Promise<boolean> {
+    const role = await this.userModel.findOne({ email });
     if (role) {
+      throw new ConflictException(USER.DUPLICATE);
+    }
+    return !!role;
+  }
+
+  private async checkDuplicateRole(name: string): Promise<boolean> {
+    const role = await this.roleModel.find({ name: name }, 'name').exec();
+    if (role.length !== 0) {
       throw new ConflictException(ROLE.DUPLICATE);
     }
     return !!role;

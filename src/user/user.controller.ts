@@ -14,19 +14,26 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserDTO } from './dto/user.dto';
-import { RoleDto } from './dto/role.dto';
+import { RoleDto, RoleTypes, UpdateRoleDto } from './dto/role.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { UserEmailDto } from './dto/email-user.dto';
 import { HttpExceptionFilter } from '../config/filter/http-exception.filter';
 import { USER } from './constants/user.constants';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { IdMongoDto } from './dto/id-mongo.dto';
+import { ROLE } from './constants/role.constants';
+import { MongoExceptionFilter } from '../config/filter/mongo-exception.filter';
+import { Roles } from './decorators/roles.decorator';
+import { RolesGuard } from './guards/roles.guard';
+import { UserEmail } from './decorators/user-email.decorator';
 
 @UsePipes(
   new ValidationPipe({
     whitelist: true,
   }),
 )
+@UseFilters(MongoExceptionFilter)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @UseFilters(new HttpExceptionFilter())
 @Controller('user')
 export class UserController {
@@ -67,18 +74,44 @@ export class UserController {
     });
   }
 
+  //--------- Запрос данных пользователя по email
+  @UseGuards(JwtAuthGuard)
+  @Post('me')
+  private async getUser(@Res() response, @UserEmail() dto: UserEmailDto) {
+    const user = await this.userService.getDataUser(dto);
+    return response.status(HttpStatus.OK).json(user);
+  }
+
   // -----------------Добавление ролей для пользователя
+  @Roles(RoleTypes.admin)
   @UseGuards(JwtAuthGuard)
   @Post('role')
   async addRole(@Body() dto: RoleDto) {
     return await this.userService.createUserRole(dto);
   }
 
-  //--------- Запрос данных пользователя по id
+  @Roles(RoleTypes.admin)
   @UseGuards(JwtAuthGuard)
-  @Post('me')
-  private async getUser(@Res() response, @Body() dto: UserEmailDto) {
-    const user = await this.userService.getDataUser(dto);
-    return response.status(HttpStatus.OK).json(user);
+  @Patch('role/:id')
+  async updateRole(
+    @Res() response,
+    @Param() roleId: IdMongoDto,
+    @Body() updateDto: UpdateRoleDto,
+  ) {
+    await this.userService.updateUserRole(roleId, updateDto);
+    return response.status(HttpStatus.OK).json({
+      message: ROLE.UPDATED_SUCCESS,
+      ...updateDto,
+    });
+  }
+
+  @Roles(RoleTypes.admin)
+  @UseGuards(JwtAuthGuard)
+  @Delete('role/:id')
+  async deleteRole(@Res() response, @Param() roleId: IdMongoDto) {
+    await this.userService.deleteUserRole(roleId);
+    return response.status(HttpStatus.OK).json({
+      message: ROLE.DELETED_SUCCESS,
+    });
   }
 }

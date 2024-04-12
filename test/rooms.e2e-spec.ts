@@ -5,6 +5,7 @@ import { AppModule } from '../src/app.module';
 import { RoomDto } from '../src/rooms/dto/room.dto';
 import { disconnect, Types } from 'mongoose';
 import { RoomIdDto } from '../src/rooms/dto/roomId.dto';
+import { ADMIN } from './user/constants';
 
 export const roomTestDto: RoomDto = {
   room_number: Math.floor(Math.random() * 31) + 1,
@@ -14,9 +15,7 @@ export const roomTestDto: RoomDto = {
 };
 
 describe('RoomsController (e2e)', () => {
-  let app: INestApplication;
-  let roomId: string;
-
+  let app: INestApplication, roomId: string, token_admin: string;
   const ObjectId = '66083265ab478b178d60ef79';
   const errorId = '65f369b4bbf22dc63233144dd';
 
@@ -27,12 +26,21 @@ describe('RoomsController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+
+    const { body: body2 } = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({
+        email: ADMIN.email,
+        password: ADMIN.password,
+      });
+    token_admin = body2.access_token;
   });
 
   describe('Default tests', () => {
     it('/rooms/create (POST) - success 201', async () => {
       return request(app.getHttpServer())
         .post('/rooms/create')
+        .set('Authorization', 'Bearer ' + token_admin)
         .send(roomTestDto)
         .expect(201)
         .then(({ body }: request.Response) => {
@@ -46,6 +54,7 @@ describe('RoomsController (e2e)', () => {
       it('/rooms/:id (GET) - success 200', async () => {
         return request(app.getHttpServer())
           .get('/rooms/' + roomId)
+          .set('Authorization', 'Bearer ' + token_admin)
           .send(roomTestDto)
           .expect(200)
           .then(({ body }: request.Response) => {
@@ -57,6 +66,7 @@ describe('RoomsController (e2e)', () => {
       it('/rooms/:id (GET) - fail 404', () => {
         return request(app.getHttpServer())
           .get(`/room/${ObjectId}`)
+          .set('Authorization', 'Bearer ' + token_admin)
           .send(roomTestDto)
           .expect(404);
       });
@@ -71,6 +81,7 @@ describe('RoomsController (e2e)', () => {
         };
         await request(app.getHttpServer())
           .patch('/rooms/' + roomId)
+          .set('Authorization', 'Bearer ' + token_admin)
           .send(patchDto)
           .expect(200);
       });
@@ -84,6 +95,7 @@ describe('RoomsController (e2e)', () => {
 
         await request(app.getHttpServer())
           .patch('/rooms/' + ObjectId)
+          .set('Authorization', 'Bearer ' + token_admin)
           .send(patchDto)
           .expect(404);
       });
@@ -93,12 +105,14 @@ describe('RoomsController (e2e)', () => {
       it('/rooms/:id (DELETE) - success 200', () => {
         return request(app.getHttpServer())
           .delete('/rooms/' + roomId)
+          .set('Authorization', 'Bearer ' + token_admin)
           .expect(200);
       });
 
       it('/rooms/:id (DELETE) - fail 404', () => {
         return request(app.getHttpServer())
           .delete('/rooms/' + ObjectId)
+          .set('Authorization', 'Bearer ' + token_admin)
           .expect(404);
       });
     });
@@ -107,6 +121,7 @@ describe('RoomsController (e2e)', () => {
     it('/rooms/all (GET)  - success 200', async () => {
       await request(app.getHttpServer())
         .get('/rooms/all')
+        .set('Authorization', 'Bearer ' + token_admin)
         .expect(200)
         .then(({ body }: request.Response) => {
           expect(body.length > 0).toBe(true);
@@ -117,6 +132,7 @@ describe('RoomsController (e2e)', () => {
       it('rooms/create (POST) 400 validation error (room_type)', () => {
         return request(app.getHttpServer())
           .post('/rooms/create')
+          .set('Authorization', 'Bearer ' + token_admin)
           .send({
             ...roomTestDto,
             room_number: 1,
@@ -127,6 +143,7 @@ describe('RoomsController (e2e)', () => {
       it('/rooms/create (POST) 400 validation error (sea_view)', () => {
         return request(app.getHttpServer())
           .post('/rooms/create')
+          .set('Authorization', 'Bearer ' + token_admin)
           .send({
             ...roomTestDto,
             sea_view: 'not_boolean',
@@ -136,6 +153,7 @@ describe('RoomsController (e2e)', () => {
       it('/rooms/create (POST) 400 validation error (room_number)', () => {
         return request(app.getHttpServer())
           .post('/rooms/create')
+          .set('Authorization', 'Bearer ' + token_admin)
           .send({
             ...roomTestDto,
             room_number: 32,
@@ -145,6 +163,7 @@ describe('RoomsController (e2e)', () => {
       it('/rooms/patch (POST) 400 validation error (room_number)', () => {
         return request(app.getHttpServer())
           .patch('/rooms/' + roomId)
+          .set('Authorization', 'Bearer ' + token_admin)
           .send({
             ...roomTestDto,
             room_number: 32,
@@ -153,11 +172,15 @@ describe('RoomsController (e2e)', () => {
       });
 
       it('/rooms (GET) 400 id must be a mongodb id', () => {
-        return request(app.getHttpServer()).get('/rooms/0').expect(400);
+        return request(app.getHttpServer())
+          .get('/rooms/0')
+          .set('Authorization', 'Bearer ' + token_admin)
+          .expect(400);
       });
       it('/rooms (GET) 400 validation error (errorId)', () => {
         return request(app.getHttpServer())
           .get('/rooms/' + errorId)
+          .set('Authorization', 'Bearer ' + token_admin)
           .expect(400);
       });
     });

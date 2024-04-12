@@ -5,5 +5,7 @@
   "testRegex": ".e2e-spec.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
-  }
+  },
+  "globalSetup": "./user/create.e2e-setup.ts",
+  "globalTeardown": "./user/delete.e2e-teardown.ts"
 }

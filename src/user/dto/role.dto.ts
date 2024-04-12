@@ -6,6 +6,7 @@ import {
   MaxLength,
   NotContains,
 } from 'class-validator';
+import { PartialType } from '@nestjs/swagger';
 
 export enum RoleTypes {
   admin = 1,
@@ -32,3 +33,5 @@ export class RoleDto {
   @MaxLength(150)
   description: string;
 }
+
+export class UpdateRoleDto extends PartialType(RoleDto) {}

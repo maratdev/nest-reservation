@@ -23,15 +23,20 @@ import { RESERVE } from './constants';
 import { ROOM } from '../rooms/constants';
 import { STATUS } from '../config/constants/default';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { Roles } from '../user/decorators/roles.decorator';
+import { RoleTypes } from '../user/dto/role.dto';
+import { RolesGuard } from '../user/guards/roles.guard';
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @UsePipes(new ValidationPipe())
+@Roles(RoleTypes.admin, RoleTypes.user)
 @Controller('reserve')
 export class ReserveController {
   @Inject()
   private readonly reserveService: ReserveService;
 
   //--------- Вывод всех броней
+
   @Get('all')
   async getAllReserve(@Res() response) {
     try {
