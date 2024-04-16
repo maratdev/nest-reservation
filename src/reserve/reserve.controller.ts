@@ -11,6 +11,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Res,
   UseGuards,
   UsePipes,
@@ -26,9 +27,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { Roles } from '../user/decorators/roles.decorator';
 import { RoleTypes } from '../user/dto/role.dto';
 import { RolesGuard } from '../user/guards/roles.guard';
+import { BookingStatisticDto } from './dto/booking-statistic.dto';
 
-@UseGuards(JwtAuthGuard, RolesGuard)
 @UsePipes(new ValidationPipe())
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(RoleTypes.admin, RoleTypes.user)
 @Controller('reserve')
 export class ReserveController {
@@ -117,7 +119,7 @@ export class ReserveController {
   }
 
   //--------- Запрос брони по id
-  @Get('/:id')
+  @Get('find/:id')
   async getReserve(@Res() response, @Param() objId: GetIdReserveDto) {
     try {
       const existingReserve = await this.reserveService.getReserve(objId);
@@ -148,6 +150,25 @@ export class ReserveController {
         if (err.getStatus() === HttpStatus.NOT_FOUND) {
           throw new NotFoundException(`${RESERVE.NOTFOUND} ${objId.id}`);
         }
+        return response.status(err.getStatus()).json({
+          statusCode: HttpStatus.BAD_GATEWAY,
+          message: STATUS.SERVER_ERROR,
+        });
+      }
+    }
+  }
+
+  @Get('stat')
+  async getStatistic(@Res() response, @Query() query: BookingStatisticDto) {
+    try {
+      const existingReserve =
+        await this.reserveService.getBookingStatisticByMonth(
+          query.month,
+          query.year,
+        );
+      return response.status(HttpStatus.OK).json(existingReserve);
+    } catch (err) {
+      if (err instanceof HttpException) {
         return response.status(err.getStatus()).json({
           statusCode: HttpStatus.BAD_GATEWAY,
           message: STATUS.SERVER_ERROR,

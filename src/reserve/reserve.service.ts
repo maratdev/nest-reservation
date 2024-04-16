@@ -9,6 +9,7 @@ import { ReserveModel } from './models/reserve.model';
 import { ReserveDto } from './dto/reserve.dto';
 import { GetIdReserveDto } from './dto/reserve-id.dto';
 import { RoomService } from '../rooms/room.service';
+import { RoomsModel } from '../rooms/models/room.model';
 
 @Injectable()
 export class ReserveService {
@@ -16,6 +17,8 @@ export class ReserveService {
     @InjectModel(ReserveModel.name)
     private readonly reserveModel: Model<ReserveModel>,
     private roomService: RoomService,
+    @InjectModel(RoomsModel.name)
+    private readonly roomsModel: Model<RoomsModel>,
   ) {}
 
   //--------- Вывод всех броней
@@ -62,6 +65,45 @@ export class ReserveService {
   async deleteReserve(dto: GetIdReserveDto): Promise<void> {
     await this.checkReserveById(dto);
     await this.reserveModel.findByIdAndDelete(dto.id);
+  }
+
+  async getBookingStatisticByMonth(
+    month: number,
+    year: number,
+  ): Promise<{ roomNumber: number; books: number }> {
+    const data = await this.reserveModel.aggregate([
+      {
+        $match: {
+          createdAt: {
+            $gte: new Date(year, month - 1, 1),
+            $lt: new Date(year, month, 1),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: '$room',
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $lookup: {
+          from: 'rooms',
+          localField: '_id',
+          foreignField: 'room_id',
+          as: 'room',
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          books: '$count',
+          roomNumber: { $arrayElemAt: ['$room.room_number', 0] },
+        },
+      },
+    ]);
+
+    return data as unknown as { roomNumber: number; books: number };
   }
 
   //--------------------- Вспомогательные методы --------------------/
