@@ -37,6 +37,11 @@ export class RoomsModel extends Document {
     default: false,
   })
   is_delete?: boolean;
+
+  @Prop({
+    type: () => [String],
+  })
+  img: string[];
 }
 
 export const RoomsSchema = SchemaFactory.createForClass(RoomsModel);

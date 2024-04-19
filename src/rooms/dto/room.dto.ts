@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsBoolean,
   IsEnum,
   IsNotEmpty,
@@ -43,4 +44,9 @@ export class RoomDto {
   @IsBoolean()
   @IsOptional()
   readonly is_delete?: boolean;
+
+  @IsArray()
+  @IsNotEmpty({ each: true })
+  @IsString({ each: true })
+  readonly img: string[];
 }
