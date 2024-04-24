@@ -5,7 +5,6 @@ import { MongooseConfigService } from './config/mongodb/mongo.config';
 import { ReserveModule } from './reserve/reserve.module';
 import { ConfigAppModule } from './config/core/config-app.module';
 import { AuthModule } from './auth/auth.module';
-import { UserController } from './user/user.controller';
 import { UserModule } from './user/user.module';
 import { FileVaultService } from './file-vault/file-vault.service';
 import { FileVaultModule } from './file-vault/file-vault.module';
@@ -22,7 +21,6 @@ import { FileVaultModule } from './file-vault/file-vault.module';
     UserModule,
     FileVaultModule,
   ],
-  controllers: [UserController],
   providers: [FileVaultService],
 })
 export class AppModule {}

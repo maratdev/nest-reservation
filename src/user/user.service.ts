@@ -36,9 +36,7 @@ export class UserService {
   }
 
   async getDataUser({ email }: UserEmailDto): Promise<UserModel> {
-    const checkReserve = await this.userModel
-      .findOne({ email })
-      .select('-password');
+    const checkReserve = await this.userModel.findOne({ email });
     if (!checkReserve) throw new NotFoundException(USER.NOT_FOUND);
     return checkReserve;
   }

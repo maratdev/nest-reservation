@@ -79,7 +79,13 @@ export class UserController {
   @Post('me')
   private async getUser(@Res() response, @UserEmail() dto: UserEmailDto) {
     const user = await this.userService.getDataUser(dto);
-    return response.status(HttpStatus.OK).json(user);
+    return response.status(HttpStatus.OK).json({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+    });
   }
 
   // -----------------Добавление ролей для пользователя

@@ -1,21 +1,20 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
 import { UserModel } from '../user/models/user.model';
-import { Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { compare } from 'bcryptjs';
 import { AUTH } from './constants/auth.constants';
 import { AuthDto } from './dto/auth.dto';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(UserModel.name) private readonly userModel: Model<UserModel>,
+    private userService: UserService,
     private readonly jwtService: JwtService,
   ) {}
 
   async findUser(email: string) {
-    return this.userModel.findOne({ email }).exec();
+    return this.userService.getDataUser({ email });
   }
 
   async validateUser(
