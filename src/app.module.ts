@@ -8,6 +8,9 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { FileVaultService } from './file-vault/file-vault.service';
 import { FileVaultModule } from './file-vault/file-vault.module';
+import { TelegramModule } from './telegram/telegram.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { getTelegramConfig } from './config/telegram/telegram.config';
 
 @Module({
   imports: [
@@ -20,6 +23,11 @@ import { FileVaultModule } from './file-vault/file-vault.module';
     AuthModule,
     UserModule,
     FileVaultModule,
+    TelegramModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: getTelegramConfig,
+    }),
   ],
   providers: [FileVaultService],
 })

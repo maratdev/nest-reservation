@@ -6,7 +6,6 @@ import {
   Get,
   HttpException,
   HttpStatus,
-  Inject,
   NotFoundException,
   Param,
   Patch,
@@ -28,14 +27,15 @@ import { Roles } from '../user/decorators/roles.decorator';
 import { RoleTypes } from '../user/dto/role.dto';
 import { RolesGuard } from '../user/guards/roles.guard';
 import { BookingStatisticDto } from './dto/booking-statistic.dto';
+import { UserEmail } from '../user/decorators/user-email.decorator';
+import { UserEmailDto } from '../user/dto/email-user.dto';
 
 @UsePipes(new ValidationPipe())
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(RoleTypes.admin, RoleTypes.user)
 @Controller('reserve')
 export class ReserveController {
-  @Inject()
-  private readonly reserveService: ReserveService;
+  constructor(private readonly reserveService: ReserveService) {}
 
   //--------- Вывод всех броней
 
@@ -59,9 +59,13 @@ export class ReserveController {
 
   //--------- Создание брони
   @Post('create')
-  async createReserve(@Res() response, @Body() dto: ReserveDto) {
+  async createReserve(
+    @Res() response,
+    @Body() dto: ReserveDto,
+    @UserEmail() user: UserEmailDto,
+  ) {
     try {
-      const newReserve = await this.reserveService.createReserve(dto);
+      const newReserve = await this.reserveService.createReserve(dto, user);
       return response.status(HttpStatus.CREATED).json({
         message: RESERVE.CREATED_SUCCESS,
         newReserve,

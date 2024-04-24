@@ -10,13 +10,18 @@ import { ReserveDto } from './dto/reserve.dto';
 import { GetIdReserveDto } from './dto/reserve-id.dto';
 import { RoomService } from '../rooms/room.service';
 import { RoomsModel } from '../rooms/models/room.model';
+import { TelegramService } from '../telegram/telegram.service';
+import { UserEmailDto } from '../user/dto/email-user.dto';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class ReserveService {
   constructor(
     @InjectModel(ReserveModel.name)
     private readonly reserveModel: Model<ReserveModel>,
-    private roomService: RoomService,
+    private readonly roomService: RoomService,
+    private readonly telegramService: TelegramService,
+    private readonly userService: UserService,
     @InjectModel(RoomsModel.name)
     private readonly roomsModel: Model<RoomsModel>,
   ) {}
@@ -31,10 +36,20 @@ export class ReserveService {
   }
 
   //--------- Создание брони
-  async createReserve(reserve: ReserveDto): Promise<ReserveModel> {
+  async createReserve(
+    reserve: ReserveDto,
+    user: UserEmailDto,
+  ): Promise<ReserveModel> {
     await this.roomService.checkRoomById(reserve.room_id);
     await this.checkDuplicateReserve(reserve);
-
+    const userInfo = await this.userService.getDataUser(user);
+    const message =
+      `Имя: ${userInfo.username}\n` +
+      `Email: ${userInfo.email}\n` +
+      `Тел.: ${userInfo.phone}\n` +
+      `Дата брони: ${reserve.checkInDate}\n` +
+      `ID комнаты: ${reserve.room_id}\n`;
+    await this.telegramService.sendMessage(message);
     const createReserve = new this.reserveModel(reserve);
     return createReserve.save();
   }
@@ -65,6 +80,8 @@ export class ReserveService {
   async deleteReserve(dto: GetIdReserveDto): Promise<void> {
     await this.checkReserveById(dto);
     await this.reserveModel.findByIdAndDelete(dto.id);
+    const message = `Бронь: ${dto.id} удалена\n`;
+    await this.telegramService.sendMessage(message);
   }
 
   async getBookingStatisticByMonth(
