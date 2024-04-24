@@ -12,6 +12,7 @@ export const roomTestDto: RoomDto = {
   room_type: Math.floor(Math.random() * 4) + 1,
   description: 'Default tests',
   sea_view: Boolean(Math.round(Math.random())),
+  img: ['e4fba515-6740-4542-a978-8f57b4b508e6.jpg'],
 };
 
 describe('RoomsController (e2e)', () => {
