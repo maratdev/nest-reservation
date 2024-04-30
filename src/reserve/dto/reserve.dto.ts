@@ -9,5 +9,5 @@ export class ReserveDto {
   @IsNumber()
   @IsNotEmpty()
   @Max(31)
-  readonly checkInDate: number;
+  readonly check_date: number;
 }

@@ -77,7 +77,7 @@ export class UserController {
   //--------- Запрос данных пользователя по email
   @UseGuards(JwtAuthGuard)
   @Post('me')
-  private async getUser(@Res() response, @UserEmail() dto: UserEmailDto) {
+  async getUser(@Res() response, @UserEmail() dto: UserEmailDto) {
     const user = await this.userService.getDataUser(dto);
     return response.status(HttpStatus.OK).json({
       id: user.id,

@@ -28,13 +28,13 @@ describe('RoomsController (e2e)', () => {
     app = moduleFixture.createNestApplication();
     await app.init();
 
-    const { body: body2 } = await request(app.getHttpServer())
+    const { body: user } = await request(app.getHttpServer())
       .post('/auth/login')
       .send({
         email: ADMIN.email,
         password: ADMIN.password,
       });
-    token_admin = body2.access_token;
+    token_admin = user.access_token;
   });
 
   describe('Default tests', () => {

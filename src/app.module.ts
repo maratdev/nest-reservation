@@ -6,7 +6,6 @@ import { ReserveModule } from './reserve/reserve.module';
 import { ConfigAppModule } from './config/core/config-app.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
-import { FileVaultService } from './file-vault/file-vault.service';
 import { FileVaultModule } from './file-vault/file-vault.module';
 import { TelegramModule } from './telegram/telegram.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -29,6 +28,5 @@ import { getTelegramConfig } from './config/telegram/telegram.config';
       useFactory: getTelegramConfig,
     }),
   ],
-  providers: [FileVaultService],
 })
 export class AppModule {}

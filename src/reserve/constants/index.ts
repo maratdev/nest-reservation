@@ -7,4 +7,5 @@ export const RESERVE = {
   CONFLICT: 'At this time the room is already occupied', //Резерв обновлен успешно
   NOTFOUND: 'Reserve not found:', //Резерв не найден
   DELETED: 'Reserve deleted successfully:', //Резерв удале
+  LIMIT: 'Minimum value 1 maximum 100', //Минимальное значение 1 максимальное значение 100
 };

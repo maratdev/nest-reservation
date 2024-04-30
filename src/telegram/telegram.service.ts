@@ -13,7 +13,22 @@ export class TelegramService {
     this.options = options;
   }
 
-  async sendMessage(message: string, chatId: string = this.options.chatId) {
-    await this.bot.telegram.sendMessage(chatId, message);
+  async sendReserveMessage(
+    userInfo,
+    reserve,
+    chatId: string = this.options.chatId,
+  ) {
+    const msg =
+      `Имя: ${userInfo.username}\n` +
+      `Email: ${userInfo.email}\n` +
+      `Тел.: ${userInfo.phone}\n` +
+      `Дата брони: ${reserve.check_date}\n` +
+      `ID комнаты: ${reserve.room_id}\n`;
+    await this.bot.telegram.sendMessage(chatId, msg);
+  }
+
+  async sendDeleteMessage(id, chatId: string = this.options.chatId) {
+    const msg = `Бронь: ${id} удалена\n`;
+    await this.bot.telegram.sendMessage(chatId, msg);
   }
 }

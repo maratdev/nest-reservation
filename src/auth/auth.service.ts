@@ -13,15 +13,11 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async findUser(email: string) {
-    return this.userService.getDataUser({ email });
-  }
-
   async validateUser(
     email: string,
     password: string,
   ): Promise<Pick<UserModel, 'email' | 'role'>> {
-    const user = await this.findUser(email);
+    const user = await this.userService.getDataUser({ email });
     if (!user) throw new UnauthorizedException(AUTH.USER_NOT_FOUND_ERROR);
     const isMatch = await compare(password, user.password);
     if (!isMatch) throw new UnauthorizedException(AUTH.WRONG_PASSWORD_ERROR);

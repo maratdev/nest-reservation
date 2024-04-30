@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -38,20 +39,22 @@ export class ReserveController {
   constructor(private readonly reserveService: ReserveService) {}
 
   //--------- Вывод всех броней
-
   @Get('all')
-  async getAllReserve(@Res() response) {
+  async getAllReserve(@Query('limit') query: number, @Res() response) {
     try {
-      const allReserve = await this.reserveService.getAllReserve();
+      const allReserve = await this.reserveService.getAllReserve(query);
       response.status(HttpStatus.OK).json(allReserve);
     } catch (err) {
       if (err instanceof HttpException) {
         if (err.getStatus() === HttpStatus.NOT_FOUND) {
           throw new NotFoundException(RESERVE.NOTFOUND);
         }
+        if (err.getStatus() === HttpStatus.BAD_REQUEST) {
+          throw new BadRequestException(RESERVE.LIMIT);
+        }
         return response.status(err.getStatus()).json({
           statusCode: HttpStatus.BAD_GATEWAY,
-          message: STATUS.SERVER_ERROR,
+          message: STATUS.SERVER_ERROR || err.message,
         });
       }
     }
@@ -62,10 +65,13 @@ export class ReserveController {
   async createReserve(
     @Res() response,
     @Body() dto: ReserveDto,
-    @UserEmail() user: UserEmailDto,
+    @UserEmail() userEmail: UserEmailDto,
   ) {
     try {
-      const newReserve = await this.reserveService.createReserve(dto, user);
+      const newReserve = await this.reserveService.createReserve(
+        dto,
+        userEmail,
+      );
       return response.status(HttpStatus.CREATED).json({
         message: RESERVE.CREATED_SUCCESS,
         newReserve,

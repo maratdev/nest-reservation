@@ -17,13 +17,13 @@ describe('ReserveController (e2e)', () => {
   const errorId = '65f369b4bbf22dc63233144dd';
   const ObjectId = '6608318f3380f1e9db120dc9';
   const reserveTestDto: ReserveDto = {
-    checkInDate: Math.floor(Math.random() * 31) + 1,
+    check_date: Math.floor(Math.random() * 31) + 1,
     room_id: roomId,
   };
   const patchDto: GetIdReserveDto = {
     id: new Types.ObjectId(reserveId),
     ...reserveTestDto,
-    checkInDate: Math.floor(Math.random() * 5) + 1, // допустимые дни
+    check_date: Math.floor(Math.random() * 5) + 1, // допустимые дни
   };
 
   beforeEach(async () => {
@@ -83,7 +83,7 @@ describe('ReserveController (e2e)', () => {
     describe('Вывод информации о резерве', () => {
       it('/reserve/:id (GET) - success 200', async () => {
         return request(app.getHttpServer())
-          .get('/reserve/' + reserveId)
+          .get('/reserve/find/' + reserveId)
           .set('Authorization', 'Bearer ' + token_user)
           .send(reserveTestDto)
           .expect(200)
@@ -134,7 +134,7 @@ describe('ReserveController (e2e)', () => {
     // -----------------Вывод всех комнат
     it('/reserve/all (GET)  - success 200', async () => {
       await request(app.getHttpServer())
-        .get('/reserve/all')
+        .get('/reserve/all?limit=100')
         .set('Authorization', 'Bearer ' + token_user)
         .expect(200)
         .then(({ body }: request.Response) => {
@@ -150,7 +150,7 @@ describe('ReserveController (e2e)', () => {
           .set('Authorization', 'Bearer ' + token_user)
           .send({
             ...reserveTestDto,
-            checkInDate: 32,
+            check_date: 32,
           })
           .expect(400);
       });
@@ -170,19 +170,19 @@ describe('ReserveController (e2e)', () => {
           .set('Authorization', 'Bearer ' + token_user)
           .send({
             ...patchDto,
-            checkInDate: 0,
+            check_date: 0,
           })
           .expect(400);
       });
       it('/reserve (GET) 400 id must be a mongodb id', () => {
         return request(app.getHttpServer())
-          .get('/reserve/0')
+          .get('/reserve/find/0')
           .set('Authorization', 'Bearer ' + token_user)
           .expect(400);
       });
       it('/reserve (GET) 400 validation error (errorId)', () => {
         return request(app.getHttpServer())
-          .get('/reserve/' + errorId)
+          .get('/reserve/find/' + errorId)
           .set('Authorization', 'Bearer ' + token_user)
           .expect(400);
       });

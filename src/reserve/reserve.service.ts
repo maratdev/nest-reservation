@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -9,7 +10,6 @@ import { ReserveModel } from './models/reserve.model';
 import { ReserveDto } from './dto/reserve.dto';
 import { GetIdReserveDto } from './dto/reserve-id.dto';
 import { RoomService } from '../rooms/room.service';
-import { RoomsModel } from '../rooms/models/room.model';
 import { TelegramService } from '../telegram/telegram.service';
 import { UserEmailDto } from '../user/dto/email-user.dto';
 import { UserService } from '../user/user.service';
@@ -22,13 +22,17 @@ export class ReserveService {
     private readonly roomService: RoomService,
     private readonly telegramService: TelegramService,
     private readonly userService: UserService,
-    @InjectModel(RoomsModel.name)
-    private readonly roomsModel: Model<RoomsModel>,
   ) {}
 
   //--------- Вывод всех броней
-  async getAllReserve(): Promise<ReserveModel[]> {
-    const reserveAllData = await this.reserveModel.find();
+  async getAllReserve(query: number = 10): Promise<ReserveModel[]> {
+    if (query > 100 || query < 1) {
+      throw new BadRequestException();
+    }
+    const reserveAllData = await this.reserveModel
+      .find()
+      .sort({ createdAt: -1 })
+      .limit(query);
     if (!reserveAllData || reserveAllData.length == 0) {
       throw new NotFoundException();
     }
@@ -38,19 +42,17 @@ export class ReserveService {
   //--------- Создание брони
   async createReserve(
     reserve: ReserveDto,
-    user: UserEmailDto,
+    userEmail: UserEmailDto,
   ): Promise<ReserveModel> {
     await this.roomService.checkRoomById(reserve.room_id);
     await this.checkDuplicateReserve(reserve);
-    const userInfo = await this.userService.getDataUser(user);
-    const message =
-      `Имя: ${userInfo.username}\n` +
-      `Email: ${userInfo.email}\n` +
-      `Тел.: ${userInfo.phone}\n` +
-      `Дата брони: ${reserve.checkInDate}\n` +
-      `ID комнаты: ${reserve.room_id}\n`;
-    await this.telegramService.sendMessage(message);
-    const createReserve = new this.reserveModel(reserve);
+    const userInfo = await this.userService.getDataUser(userEmail);
+    await this.telegramService.sendReserveMessage(userInfo, reserve);
+    const createReserve = new this.reserveModel({
+      check_date: reserve.check_date,
+      room_id: reserve.room_id,
+      user_id: userInfo._id,
+    });
     return createReserve.save();
   }
 
@@ -80,15 +82,17 @@ export class ReserveService {
   async deleteReserve(dto: GetIdReserveDto): Promise<void> {
     await this.checkReserveById(dto);
     await this.reserveModel.findByIdAndDelete(dto.id);
-    const message = `Бронь: ${dto.id} удалена\n`;
-    await this.telegramService.sendMessage(message);
+    await this.telegramService.sendDeleteMessage(dto.id);
   }
 
   async getBookingStatisticByMonth(
     month: number,
     year: number,
   ): Promise<{ roomNumber: number; books: number }> {
-    const data = await this.reserveModel.aggregate([
+    const [data] = await this.reserveModel.aggregate<{
+      roomNumber: number;
+      books: number;
+    }>([
       {
         $match: {
           createdAt: {
@@ -120,7 +124,7 @@ export class ReserveService {
       },
     ]);
 
-    return data as unknown as { roomNumber: number; books: number };
+    return data;
   }
 
   //--------------------- Вспомогательные методы --------------------/
@@ -128,9 +132,9 @@ export class ReserveService {
   private async checkDuplicateReserve(dto: ReserveDto): Promise<boolean> {
     const findReserve = await this.reserveModel.findOne({
       room_id: dto.room_id,
-      checkInDate: dto.checkInDate,
+      check_date: dto.check_date,
     });
-    if (findReserve) throw new ConflictException(dto.checkInDate);
+    if (findReserve) throw new ConflictException(dto.check_date);
     return !!findReserve;
   }
 
