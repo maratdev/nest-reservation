@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -40,8 +41,23 @@ export class ReserveController {
   //--------- Вывод всех броней
   @Get('all')
   async getAllReserve(@Query('limit') query: number, @Res() response) {
-    const allReserve = await this.reserveService.getAllReserve(query);
-    response.status(HttpStatus.OK).json(allReserve);
+    try {
+      const allReserve = await this.reserveService.getAllReserve(query);
+      response.status(HttpStatus.OK).json(allReserve);
+    } catch (err) {
+      if (err instanceof HttpException) {
+        if (err.getStatus() === HttpStatus.NOT_FOUND) {
+          throw new NotFoundException(RESERVE.NOTFOUND);
+        }
+        if (err.getStatus() === HttpStatus.BAD_REQUEST) {
+          throw new BadRequestException(RESERVE.LIMIT);
+        }
+        return response.status(err.getStatus()).json({
+          statusCode: HttpStatus.BAD_GATEWAY,
+          message: STATUS.SERVER_ERROR || err.message,
+        });
+      }
+    }
   }
 
   //--------- Создание брони
