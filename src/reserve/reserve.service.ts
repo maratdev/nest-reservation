@@ -32,6 +32,8 @@ export class ReserveService {
     const reserveAllData = await this.reserveModel
       .find()
       .sort({ createdAt: -1 })
+      .populate({ path: 'user_id', model: 'UserModel' })
+      .populate({ path: 'room_id', model: 'RoomsModel' })
       .limit(query);
     if (!reserveAllData || reserveAllData.length == 0) {
       throw new NotFoundException();
@@ -75,7 +77,7 @@ export class ReserveService {
   //--------- Вывод информации о брони
   async getReserve(dto: GetIdReserveDto): Promise<ReserveModel> {
     await this.checkReserveById(dto);
-    return this.reserveModel.findById(dto.id);
+    return this.reserveModel.findById(dto.id).exec();
   }
 
   //--------- Удаление брони
