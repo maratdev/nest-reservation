@@ -24,7 +24,7 @@ export class ReserveService {
     private readonly userService: UserService,
   ) {}
 
-  //--------- Вывод всех броней------/
+  //--------- Вывод всех броней----/
   async getAllReserve(query: number = 10): Promise<ReserveModel[]> {
     if (query > 100 || query < 1) {
       throw new BadRequestException();
